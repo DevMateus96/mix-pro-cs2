@@ -2,7 +2,8 @@ name: Publicar MIX PRO no GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: github-pages
   cancel-in-progress: false
 
 jobs:
@@ -19,6 +20,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     runs-on: ubuntu-latest
 
     steps:
@@ -28,11 +30,19 @@ jobs:
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Enviar arquivos do frontend
+      - name: Criar pasta do site
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp -r src _site/src
+          if [ -d assets ]; then cp -r assets _site/assets; fi
+          if [ -d public ]; then cp -r public _site/public; fi
+
+      - name: Enviar site para publicação
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
-      - name: Publicar
+      - name: Publicar no GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
